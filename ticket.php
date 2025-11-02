@@ -1,5 +1,4 @@
 <?php
-session_start();
 include "connection.php";
 
 // Ensure the user is logged in
@@ -100,7 +99,7 @@ function getPaginationUrl($page, $status_filter, $search_query) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost Boys Club - My Tickets</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="user-style.css">
 </head>
 <body>
     <header class="navbar">
@@ -111,7 +110,7 @@ function getPaginationUrl($page, $status_filter, $search_query) {
         <nav class="nav-links">
             <a href="dashboard.php">Home</a>
             <a href="ticket.php">Tickets</a>
-            <a href="#" class="account-link">Account</a>
+            <a href="account.php">Account</a>
             <span class="user-info">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></span> 
             <a href="logout.php" class="logout-btn">Logout</a>
         </nav>
@@ -124,10 +123,7 @@ function getPaginationUrl($page, $status_filter, $search_query) {
                 <form action="ticket.php" method="GET" class="filter-form">
                     <!-- Preserve current page when filtering -->
                     <input type="hidden" name="page" value="1">
-                    <div class="search-container">
-                        <input type="text" name="search" placeholder="Search by ticket number..." value="<?php echo htmlspecialchars($search_query); ?>">
-                        <button type="submit">Search</button>
-                    </div>
+            
                     <div class="filter-container">
                         <label for="status-filter">Filter by Status:</label>
                         <select id="status-filter" name="status" onchange="this.form.submit()">
@@ -274,10 +270,7 @@ function getPaginationUrl($page, $status_filter, $search_query) {
                 <div class="ticket-info-group">
                     <strong>Status:</strong> <span id="modalTicketStatus"></span>
                 </div>
-                <div class="qr-code-placeholder">
-                    [Image of a QR code]
-                    <p>Scan this code at the entrance.</p>
-                </div>
+                
             </div>
         </div>
     </div>

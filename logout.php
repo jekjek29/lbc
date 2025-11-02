@@ -1,10 +1,7 @@
-<?php 
+<?php
 session_start();
-
-$_SESSION = array();    
-
+session_unset();
 session_destroy();
-
-header(header:'location: login.php');
+header("Location: login.php");
 exit();
 ?>

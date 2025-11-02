@@ -1,5 +1,4 @@
 <?php
-session_start();
 include "connection.php";
 
 if (isset($_POST['loginbtn'])) {
@@ -40,12 +39,19 @@ if (isset($_POST['loginbtn'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost Boys Club Login</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="user-style.css">
 </head>
 <body>
     <header class="navbar">
         <div class="logo">
             <h1>Lost Boys Club</h1>
+        </div>
+          <div class="nav-content" id="navContent">
+            <div class="user-info">
+                
+                <a href="index.html" class="btn btn--outline">Home</a>
+                
+            </div>
         </div>
     </header>
 
@@ -71,5 +77,4 @@ if (isset($_POST['loginbtn'])) {
     </main>
 </body>
 </html>
-
 

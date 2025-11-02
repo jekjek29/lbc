@@ -23,7 +23,7 @@ if (!$result) {
 <head>
     <meta charset="UTF-8">
     <title>Ticket Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="admin-style.css"> 
 </head>
 <body>
     <div class="navbar">
@@ -67,8 +67,8 @@ if (!$result) {
                         <th>Ref No.</th>
                         <th>Paid</th>
                         <th>Account Name</th>
-                        <th style="width: 100px;">Status</th>
-                        <th style="width: 200px;">Action</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -128,5 +128,8 @@ if (!$result) {
                     ?>
                 </tbody>
             </table>
-        </div> </div> </body>
+        </div>
+     
+    </div> 
+</body>
 </html>

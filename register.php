@@ -57,18 +57,21 @@ if (isset($_POST['registerbtn'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lost Boys Club Register</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="user-style.css">
 </head>
 <body>
     <header class="navbar">
         <div class="logo">
             <h1>Lost Boys Club</h1>
         </div>
-        <nav class="nav-links">
-            <a href="#">Home</a>
-            <a href="#">Tickets</a>
-            <a href="#">Account</a>
-        </nav>
+             
+
+        <div class="user-info">
+                
+                <a href="index.html" class="btn btn--outline">Home</a>
+                
+        </div>
+
     </header>
 
     <main class="main-container">
@@ -106,13 +109,7 @@ if (isset($_POST['registerbtn'])) {
                     <input type="password" id="confirm_password" name="confirm_password" required placeholder="Re-enter your password">
                 </div>
                 
-                <div class="form-group">
-                    <label for="role">Role:</label>
-                    <select id="role" name="role">
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
+
 
                 <button type="submit" name="registerbtn">Register</button>
             </form>

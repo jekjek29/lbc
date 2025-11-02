@@ -1,11 +1,5 @@
 <?php
-// Set content type to JSON
-header('Content-Type: application/json');
-
-// Include your database connection file
-// NOTE: Ensure 'connection.php' provides a valid database connection object, typically $conn (mysqli) or $pdo (PDO).
 include "connection.php";
-session_start();
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
