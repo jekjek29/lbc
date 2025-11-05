@@ -1,6 +1,13 @@
-/* General Body and Main Layout */
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap");
 
+
+/* ==========================================
+   ADMIN DASHBOARD STYLES
+   ========================================== */
+
+/* Import Google Font */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* --- Base Styles --- */
 body {
   font-family: "Inter", sans-serif;
   margin: 0;
@@ -28,11 +35,13 @@ body::before {
   z-index: -1;
 }
 
-/* --- Navbar Styling --- */
+/* ==========================================
+   NAVBAR STYLES
+   ========================================== */
 .navbar {
   width: 100%;
   padding: 1rem 2rem;
-  background: rgba(0, 0, 0);
+  background: rgba(0, 0, 0, 1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -44,99 +53,196 @@ body::before {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.navbar .logo h1,
-.logo h1 {
+.navbar .logo h1 {
   margin: 0;
   font-size: 1.375rem;
   color: #fff;
   letter-spacing: 1.5px;
 }
 
-.navbar .nav-links a,
-.nav-links a {
-  margin-left: 1.25rem;
-  color: #fff;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 0.9rem;
-  transition: color 0.3s ease;
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.navbar .nav-links a:hover,
-.nav-links a:hover {
-  color: #bbb;
+.nav-btn {
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s;
+  font-size: 15px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: inline-block;
+}
+
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
 }
 
 .logout-btn {
-  background-color: rgba(239, 68, 68, 0.2) !important;
-  padding: 0.5rem 1rem !important;
-  border-radius: 0.375rem !important;
-  margin-left: 1rem !important;
+  background: rgba(220, 53, 69, 0.9);
+  border-color: rgba(220, 53, 69, 1);
 }
 
 .logout-btn:hover {
-  background-color: rgba(239, 68, 68, 0.3) !important;
+  background: rgba(200, 35, 51, 1);
+  border-color: rgba(200, 35, 51, 1);
 }
 
-
-/* Alert Messages */
-.alert {
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.alert-error {
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-}
-
-.alert-success {
-  background-color: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #86efac;
-}
-
-/* --- Dashboard Specific Styles --- */
+/* ==========================================
+   DASHBOARD CONTAINER
+   ========================================== */
 .dashboard-container {
   padding: 6rem 2rem 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }
 
+/* ==========================================
+   DASHBOARD HEADER
+   ========================================== */
 .dashboard-header {
-  margin-bottom: 2rem;
+  background: white;
+  padding: 25px 30px;
+  margin-bottom: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #007bff;
 }
 
-.dashboard-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
-  color: #fff;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.dashboard-header p {
+.header-title h2 {
+  margin: 0 0 5px 0;
+  color: #2c3e50;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.header-subtitle {
   margin: 0;
-  color: #ccc;
-  font-size: 1.1rem;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 400;
 }
 
+.header-stats {
+  display: flex;
+  gap: 25px;
+}
 
-/* ADMIN DASHBOARD TABLE STYLES */
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 20px;
+  color: #2c3e50;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.status-legend {
+  display: flex;
+  gap: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.status-pending {
+  background-color: #ffc107;
+}
+
+.dot.status-confirmed {
+  background-color: #28a745;
+}
+
+.dot.status-expired {
+  background-color: #dc3545;
+}
+
+/* ==========================================
+   ALERT MESSAGES
+   ========================================== */
+.alert {
+  padding: 15px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* ==========================================
+   TICKET TABLE STYLES
+   ========================================== */
 .ticket-table-container {
   display: flex;
   justify-content: center;
   width: 100%;
+  overflow-x: auto;
 }
 
 .ticket-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 1000px;
+  background: #242424;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .ticket-table thead tr {
@@ -191,7 +297,7 @@ body::before {
   font-weight: bold;
 }
 
-/* Action Button Container */
+/* Action Button Styles */
 .action-links {
   display: flex;
   gap: 0.5rem;
@@ -199,7 +305,6 @@ body::before {
   white-space: nowrap;
 }
 
-/* Specific Action Button Styles */
 .action-links a {
   text-decoration: none;
   padding: 0.4rem 0.6rem;
@@ -216,6 +321,7 @@ body::before {
 
 .action-accept:hover {
   background-color: #059669;
+  transform: translateY(-1px);
 }
 
 .action-reject {
@@ -225,6 +331,7 @@ body::before {
 
 .action-reject:hover {
   background-color: #dc2626;
+  transform: translateY(-1px);
 }
 
 .action-pending {
@@ -234,182 +341,286 @@ body::before {
 
 .action-pending:hover {
   background-color: #d97706;
+  transform: translateY(-1px);
 }
 
+/* ==========================================
+   PAGINATION STYLES
+   ========================================== */
+.pagination-container {
+  margin: 30px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
 
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 5px;
+}
 
-/* Responsive Media Queries */
+.pagination a,
+.pagination span {
+  padding: 8px 12px;
+  text-decoration: none;
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
 
-/* Tablet and small desktop (768px and up) */
-@media (min-width: 768px) {
-  .login-card {
-    max-width: 450px;
-    padding: 2.5rem;
+.pagination a:hover {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination .active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+  font-weight: bold;
+}
+
+.pagination .disabled {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.page-btn {
+  padding: 8px 15px;
+  font-weight: bold;
+}
+
+.ellipsis {
+  padding: 8px 12px;
+  border: none;
+  background: none;
+}
+
+/* ==========================================
+   MODAL STYLES
+   ========================================== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 800px;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
   }
-
-  .login-logo {
-    width: 6rem;
-    height: 6rem;
-  }
-
-  .login-card h2 {
-    font-size: 1.5rem;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-/* Mobile devices (max 767px) */
-@media (max-width: 768px) {
+.modal-header {
+  padding: 20px 25px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 22px;
+}
+
+.modal-body {
+  padding: 25px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.close-modal {
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  line-height: 1;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+  transform: scale(1.2);
+}
+
+/* ==========================================
+   RESTOCK FORM STYLES
+   ========================================== */
+.restock-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 14px;
+}
+
+.form-field select,
+.form-field input {
+  padding: 12px 15px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.form-field select:focus,
+.form-field input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form-field small {
+  margin-top: 5px;
+  color: #888;
+  font-size: 12px;
+}
+
+.restock-btn {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+  width: 100%;
+}
+
+.restock-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+}
+
+.event-info {
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+  display: none;
+}
+
+/* ==========================================
+   RESPONSIVE STYLES
+   ========================================== */
+
+/* Tablet and medium screens */
+@media screen and (max-width: 768px) {
   .navbar {
     padding: 0.75rem 1rem;
   }
 
-  .logo h1 {
+  .navbar .logo h1 {
     font-size: 1.125rem;
   }
 
-  .nav-links a {
-    margin-left: 0.75rem;
-    font-size: 0.8rem;
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
 
-  .main-container {
-    padding: 4rem 0.75rem 1rem;
-  }
-
-  .login-card {
-    padding: 1.5rem;
-    margin: 0 0.5rem;
-  }
-
-  .login-logo {
-    width: 4rem;
-    height: 4rem;
-  }
-
-  .login-card h2 {
-    font-size: 1.25rem;
+  .nav-btn {
+    font-size: 14px;
+    padding: 8px 16px;
   }
 
   .dashboard-container {
     padding: 5rem 1rem 1rem;
   }
 
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+  .dashboard-header {
+    padding: 20px;
   }
 
-  .nav-links {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .user-info {
-    margin: 0.5rem 0;
-    order: 3;
+  .header-stats {
     width: 100%;
+    justify-content: space-between;
   }
 
-  .events-container {
-    padding: 5rem 1rem 1rem;
+  .stat-item {
+    align-items: flex-start;
   }
 
-  .events-header h2 {
-    font-size: 2rem;
+  .header-title h2 {
+    font-size: 20px;
   }
 
-  .events-grid {
+  .status-legend {
+    gap: 15px;
+  }
+
+  .restock-form {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
 
-  .event-card {
-    padding: 1.25rem;
+  .ticket-table-container {
+    overflow-x: auto;
   }
 
-  .navbar-logo {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .page-btn,
-  .page-number {
-    padding: 8px 12px;
-    font-size: 14px;
-  }
-
-  .first-btn,
-  .last-btn {
-    display: none;
-  }
-}
-
-/* Very small mobile devices (max 480px) */
-@media (max-width: 480px) {
-  .navbar {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .logo h1 {
-    font-size: 1rem;
-  }
-
-  .nav-links a {
-    margin-left: 0.5rem;
-    font-size: 0.75rem;
-  }
-
-  .main-container {
-    padding: 3.5rem 0.5rem 1rem;
-  }
-
-  .login-card {
-    padding: 1.25rem;
-    margin: 0 0.25rem;
-  }
-
-  .login-logo {
-    width: 3.5rem;
-    height: 3.5rem;
-  }
-
-  .login-card h2 {
-    font-size: 1.125rem;
-    margin-bottom: 1rem;
-  }
-
-  input {
-    padding: 0.625rem;
-    font-size: 0.9rem;
-  }
-
-  .btn-primary {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.9rem;
-  }
-
-  .pagination {
-    gap: 3px;
-  }
-
-  .page-btn,
-  .page-number {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-
-  .prev-btn,
-  .next-btn {
-    padding: 6px 12px;
-  }
-}
-
-@media (max-width: 600px) {
   .ticket-table th,
   .ticket-table td {
     padding: 0.75rem 0.5rem;
@@ -419,5 +630,68 @@ body::before {
   .action-links a {
     font-size: 0.7rem;
     padding: 0.3rem 0.5rem;
+  }
+}
+
+/* Mobile devices */
+@media screen and (max-width: 480px) {
+  .navbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .navbar .logo h1 {
+    font-size: 1rem;
+  }
+
+  .nav-btn {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .dashboard-container {
+    padding: 4rem 0.5rem 1rem;
+  }
+
+  .dashboard-header {
+    padding: 15px;
+  }
+
+  .header-title h2 {
+    font-size: 18px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 10% auto;
+  }
+
+  .modal-header h3 {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .page-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }

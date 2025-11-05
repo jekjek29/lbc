@@ -127,7 +127,7 @@ if ($result->num_rows > 0) {
             <span class="close-btn" onclick="closeAllModals()">&times;</span>
             <h2>Step 2: Scan to Pay via G-Cash</h2>
             <div class="qr-code-container">
-                <img src="images/gcash-qr.jpg" alt="G-Cash QR Code">
+                <img src="images/qr.jpg" alt="G-Cash QR Code">
                 <p>Please send <strong id="modal2Amount">₱0.00</strong> to the account associated with this QR code.</p>
                 <p>Account Name: <strong>Lost Boys Club Payments</strong></p>
             </div>
