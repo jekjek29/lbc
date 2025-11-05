@@ -5,7 +5,34 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-// Assuming $_SESSION['user_name'] is set during login
+
+// Hardcoded image mapping (since your database has path issues)
+$eventImages = [
+    1 => 'images/logo.jpg',
+    2 => 'images/logo.jpg',
+    3 => 'images/logo.jpg',
+    4 => 'images/logo.jpg'
+];
+
+// **FETCH EVENTS WITH LIVE AVAILABILITY FROM DATABASE**
+$sql = "SELECT id, 
+               title as name, 
+               CONCAT(event_date, ' @ ', DATE_FORMAT(event_time, '%h:%i %p')) as datetime, 
+               price, 
+               available_tickets,
+               capacity
+        FROM events 
+        WHERE event_date >= CURDATE() 
+        ORDER BY event_date ASC";
+
+$result = $conn->query($sql);
+$events = [];
+
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $events[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,33 +63,41 @@ if (!isset($_SESSION['user_id'])) {
         <h2>UPCOMING EVENTS</h2>
         <div class="event-list">
             <?php
-            $events = [
-                ['id' => 1, 'name' => 'The Big Rave Night', 'datetime' => '2025-11-20 @ 8:00 PM', 'price' => 150.00, 'image' => 'images/logo.jpg'],
-                ['id' => 2, 'name' => 'Summer EDM Fest', 'datetime' => '2025-12-05 @ 7:00 PM', 'price' => 250.00, 'image' => 'images/logo.jpg'],
-                ['id' => 3, 'name' => 'Hip-Hop Showcase', 'datetime' => '2025-12-19 @ 9:00 PM', 'price' => 100.00, 'image' => 'images/logo.jpg'],
-                ['id' => 4, 'name' => 'New Year\'s Eve Bash', 'datetime' => '2025-12-31 @ 10:00 PM', 'price' => 350.00, 'image' => 'images/logo.jpg']
-            ];
-
             foreach ($events as $event) {
                 $js_event_name = addslashes($event['name']);
                 $js_event_datetime = addslashes($event['datetime']);
+                $imagePath = isset($eventImages[$event['id']]) ? $eventImages[$event['id']] : 'images/logo.jpg';
 
-                echo '<div class="event">';
-                echo '<img src="' . htmlspecialchars($event['image']) . '" alt="' . htmlspecialchars($event['name']) . ' Image" class="event-image">';
+                echo '<div class="event" data-event-id="' . $event['id'] . '">';
+                echo '<img src="' . htmlspecialchars($imagePath) . '" 
+                           alt="' . htmlspecialchars($event['name']) . '" 
+                           class="event-image" 
+                           onerror="this.src=\'images/logo.jpg\'">';
                 echo '<div class="event-details">';
                 echo '<h3>' . htmlspecialchars($event['name']) . '</h3>';
                 echo '<p>' . htmlspecialchars($event['datetime']) . '</p>';
-                echo '<button 
-                        class="buy-tickets-btn" 
-                        onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ')">
-                        Buy Tickets
-                      </button>';
+                
+                // **DISPLAY AVAILABILITY**
+                echo '<p class="availability">Available: ' . htmlspecialchars($event['available_tickets']) . ' / ' . htmlspecialchars($event['capacity']) . ' tickets</p>';
+                
+                // **SHOW BUTTON OR SOLD OUT**
+                if ($event['available_tickets'] > 0) {
+                    echo '<button 
+                            class="buy-tickets-btn" 
+                            onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ')">
+                            Buy Tickets
+                          </button>';
+                } else {
+                    echo '<button class="buy-tickets-btn sold-out" disabled>Sold Out</button>';
+                }
+                
                 echo '</div>';
                 echo '</div>';
             }
             ?>
         </div>
     </main>
+    
     
     <div id="modalStep1" class="modal">
         <div class="modal-content">

@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
     $confirm_password = $_POST['confirm_password'];
     
     // Fetch current password hash
-    $pass_stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+    $pass_stmt = $conn->prepare("SELECT password FROM login WHERE id = ?");
     
     if ($pass_stmt === false) {
         $error_message = "Prepare failed: " . htmlspecialchars($conn->error);
