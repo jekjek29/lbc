@@ -6,7 +6,6 @@ if (isset($_POST['registerbtn'])) {
     $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
 
@@ -35,9 +34,9 @@ if (isset($_POST['registerbtn'])) {
         $account_locked_until = NULL;
 
       $insert = "INSERT INTO login 
-    (username, email, password_hash, first_name, last_name, role, is_active, created_at, updated_at, last_login, failed_login_attempts, account_locked_until) 
+    (username, email, password_hash, first_name, last_name, is_active, created_at, updated_at, last_login, failed_login_attempts, account_locked_until) 
     VALUES 
-    ('$username', '$email', '$password_hash', '$first_name', '$last_name', '$role', '$is_active', '$created_at', '$updated_at', NULL, '$failed_login_attempts', NULL)";
+    ('$username', '$email', '$password_hash', '$first_name', '$last_name', '$is_active', '$created_at', '$updated_at', NULL, '$failed_login_attempts', NULL)";
 
 
         if (mysqli_query($conn, $insert)) {

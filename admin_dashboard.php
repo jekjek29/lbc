@@ -1,7 +1,4 @@
 <?php
-// ==========================================
-// DATABASE CONNECTION & CONFIGURATION
-// ==========================================
 include 'connection.php';
 
 // ==========================================
@@ -15,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restock_tickets'])) {
     $quantity = (int)$_POST['quantity'];
     $price = (float)$_POST['price'];
     
-    // Validate inputs
     if ($event_id <= 0) {
         $restock_error = "Please select a valid event.";
     } elseif ($quantity <= 0) {
@@ -23,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restock_tickets'])) {
     } elseif ($price < 0) {
         $restock_error = "Price cannot be negative.";
     } else {
-        // Update the available_tickets and price in events table
         $restock_sql = "UPDATE events SET available_tickets = available_tickets + ?, price = ? WHERE id = ?";
         $restock_stmt = $conn->prepare($restock_sql);
         
@@ -55,6 +50,11 @@ if ($events_result) {
     }
 }
 
+// ==========================================
+// GET FILTER PARAMETERS
+// ==========================================
+$filter_status = isset($_GET['status']) && !empty($_GET['status']) ? $_GET['status'] : '';
+$filter_date = isset($_GET['date']) && !empty($_GET['date']) ? $_GET['date'] : '';
 
 // ==========================================
 // PAGINATION SETUP
@@ -65,16 +65,42 @@ $current_page = max(1, $current_page);
 $offset = ($current_page - 1) * $records_per_page;
 
 // ==========================================
-// GET TOTAL COUNT OF RECORDS
+// BUILD WHERE CLAUSE FOR FILTERING
 // ==========================================
-$count_sql = "SELECT COUNT(*) as total FROM tickets";
-$count_result = $conn->query($count_sql);
+$where_clause = "";
+$where_params = [];
+$param_types = "";
 
-if (!$count_result) {
-    die("SQL Error: " . $conn->error);
+if ($filter_status && in_array($filter_status, ['pending', 'confirmed', 'expired'])) {
+    $where_clause .= " WHERE status = ?";
+    $where_params[] = $filter_status;
+    $param_types .= "s";
 }
 
+if ($filter_date) {
+    if ($where_clause) {
+        $where_clause .= " AND DATE(purchase_date) = ?";
+    } else {
+        $where_clause .= " WHERE DATE(purchase_date) = ?";
+    }
+    $where_params[] = $filter_date;
+    $param_types .= "s";
+}
+
+// ==========================================
+// GET TOTAL COUNT OF RECORDS
+// ==========================================
+$count_sql = "SELECT COUNT(*) as total FROM tickets" . $where_clause;
+$count_stmt = $conn->prepare($count_sql);
+
+if ($where_params) {
+    $count_stmt->bind_param($param_types, ...$where_params);
+}
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
 $total_records = $count_result->fetch_assoc()['total'];
+$count_stmt->close();
+
 $total_pages = ceil($total_records / $records_per_page);
 
 // ==========================================
@@ -84,11 +110,18 @@ $sql = "SELECT
             id, ticket_number, event_id, user_id, ticket_type, price, 
             purchase_date, status, payment_reference, amount_paid, account_name 
         FROM tickets 
+        " . $where_clause . "
         ORDER BY FIELD(status, 'pending', 'expired', 'confirmed'), purchase_date DESC
         LIMIT ? OFFSET ?";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $records_per_page, $offset);
+$where_params[] = $records_per_page;
+$where_params[] = $offset;
+$param_types .= "ii";
+
+if ($where_params) {
+    $stmt->bind_param($param_types, ...$where_params);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -142,6 +175,99 @@ if (!$result) {
         .logout-btn:hover {
             background: rgba(200, 35, 51, 1);
             border-color: rgba(200, 35, 51, 1);
+        }
+
+        /* ==========================================
+           FILTER STYLES
+           ========================================== */
+        .filter-section {
+            background: #2d3748;
+            padding: 20px 30px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 12px;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            font-size: 13px;
+            background: #1a202c;
+            color: white;
+            transition: border-color 0.3s, background 0.3s;
+        }
+
+        .filter-group select:hover,
+        .filter-group input:hover {
+            border-color: #007bff;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+            background: #1a202c;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-apply {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-reset {
+            padding: 10px 20px;
+            background: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-reset:hover {
+            background: #2d3748;
         }
 
         /* ==========================================
@@ -477,9 +603,6 @@ if (!$result) {
             background: none;
         }
 
-        /* ==========================================
-           RESPONSIVE STYLES
-           ========================================== */
         @media screen and (max-width: 768px) {
             .nav-links {
                 flex-wrap: wrap;
@@ -490,6 +613,28 @@ if (!$result) {
             .nav-btn {
                 font-size: 14px;
                 padding: 8px 16px;
+            }
+
+            .filter-section {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                width: 100%;
+            }
+
+            .filter-buttons {
+                width: 100%;
+            }
+
+            .filter-buttons button,
+            .filter-buttons a {
+                flex: 1;
             }
 
             .dashboard-header {
@@ -525,9 +670,6 @@ if (!$result) {
     </style>
 </head>
 <body>
-    <!-- ==========================================
-         NAVIGATION BAR
-         ========================================== -->
     <div class="navbar">
         <div class="logo">
             <h1>Admin Panel</h1>
@@ -537,18 +679,11 @@ if (!$result) {
                 Restock Tickets
             </button>
             <a href="admin_dashboard.php" class="nav-btn">Dashboard</a>
-            <a href="logout.php" class="nav-btn logout-btn">Logout</a>
+            <a href="admin_logout.php" class="nav-btn logout-btn">Logout</a>
         </div>
     </div>
 
-    <!-- ==========================================
-         MAIN DASHBOARD CONTAINER
-         ========================================== -->
     <div class="dashboard-container">
-        
-        <!-- ==========================================
-             DASHBOARD HEADER
-             ========================================== -->
         <div class="dashboard-header">
             <div class="header-content">
                 <div class="header-title">
@@ -576,8 +711,32 @@ if (!$result) {
         </div>
 
         <!-- ==========================================
-             STATUS UPDATE MESSAGES
+             FILTER SECTION
              ========================================== -->
+        <div class="filter-section">
+            <form method="GET" action="admin_dashboard.php" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; width: 100%;">
+                <div class="filter-group">
+                    <label for="status">Status</label>
+                    <select name="status" id="status">
+                        <option value="">All</option>
+                        <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="confirmed" <?php echo $filter_status === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                        <option value="expired" <?php echo $filter_status === 'expired' ? 'selected' : ''; ?>>Expired</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="date">Date</label>
+                    <input type="date" name="date" id="date" value="<?php echo htmlspecialchars($filter_date); ?>">
+                </div>
+
+                <div class="filter-buttons">
+                    <button type="submit" class="btn-apply">Filter</button>
+                    <a href="admin_dashboard.php" class="btn-reset">Reset</a>
+                </div>
+            </form>
+        </div>
+
         <?php if (isset($_GET['update']) && $_GET['update'] == 'success'): ?>
             <div class='alert alert-success'>
                 Ticket ID <?php echo htmlspecialchars($_GET['ticket']); ?> status updated to 
@@ -589,9 +748,6 @@ if (!$result) {
             </div>
         <?php endif; ?>
 
-        <!-- ==========================================
-             TICKETS TABLE
-             ========================================== -->
         <div class="ticket-table-container">
             <table class="ticket-table"> 
                 <thead>
@@ -634,9 +790,9 @@ if (!$result) {
                                 <td><strong class='<?php echo $status_class; ?>'><?php echo $display_status; ?></strong></td>
                                 <td>
                                     <div class='action-links'>
-                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=accept&page=<?php echo $current_page; ?>' class='action-accept'>Confirm</a>
-                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=reject&page=<?php echo $current_page; ?>' class='action-reject'>Reject</a>
-                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=pending&page=<?php echo $current_page; ?>' class='action-pending'>Pending</a>
+                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=accept&page=<?php echo $current_page; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>' class='action-accept'>Confirm</a>
+                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=reject&page=<?php echo $current_page; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>' class='action-reject'>Reject</a>
+                                        <a href='update_status.php?id=<?php echo $row["id"]; ?>&action=pending&page=<?php echo $current_page; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>' class='action-pending'>Pending</a>
                                     </div>
                                 </td>
                             </tr>
@@ -652,33 +808,23 @@ if (!$result) {
             </table>
         </div>
 
-        <!-- ==========================================
-             PAGINATION CONTROLS
-             ========================================== -->
         <?php if ($total_pages > 1): ?>
             <div class="pagination-container">
                 <div class="pagination">
-                    <!-- First Page Button -->
                     <?php if ($current_page > 1): ?>
-                        <a href="?page=1" class="page-btn">&laquo;&laquo; First</a>
+                        <a href="?page=1&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>" class="page-btn">&laquo;&laquo; First</a>
+                        <a href="?page=<?php echo $current_page - 1; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>" class="page-btn">&laquo; Previous</a>
                     <?php else: ?>
                         <span class="page-btn disabled">&laquo;&laquo; First</span>
-                    <?php endif; ?>
-
-                    <!-- Previous Page Button -->
-                    <?php if ($current_page > 1): ?>
-                        <a href="?page=<?php echo $current_page - 1; ?>" class="page-btn">&laquo; Previous</a>
-                    <?php else: ?>
                         <span class="page-btn disabled">&laquo; Previous</span>
                     <?php endif; ?>
 
-                    <!-- Page Numbers -->
                     <?php
                     $start_page = max(1, $current_page - 2);
                     $end_page = min($total_pages, $current_page + 2);
                     
                     if ($start_page > 1): ?>
-                        <a href="?page=1">1</a>
+                        <a href="?page=1&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>">1</a>
                         <?php if ($start_page > 2): ?>
                             <span class="ellipsis">...</span>
                         <?php endif;
@@ -688,7 +834,7 @@ if (!$result) {
                         <?php if ($page == $current_page): ?>
                             <span class="active"><?php echo $page; ?></span>
                         <?php else: ?>
-                            <a href="?page=<?php echo $page; ?>"><?php echo $page; ?></a>
+                            <a href="?page=<?php echo $page; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>"><?php echo $page; ?></a>
                         <?php endif;
                     endfor;
 
@@ -696,31 +842,21 @@ if (!$result) {
                         <?php if ($end_page < $total_pages - 1): ?>
                             <span class="ellipsis">...</span>
                         <?php endif; ?>
-                        <a href="?page=<?php echo $total_pages; ?>"><?php echo $total_pages; ?></a>
+                        <a href="?page=<?php echo $total_pages; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>"><?php echo $total_pages; ?></a>
                     <?php endif; ?>
 
-                    <!-- Next Page Button -->
                     <?php if ($current_page < $total_pages): ?>
-                        <a href="?page=<?php echo $current_page + 1; ?>" class="page-btn">Next &raquo;</a>
+                        <a href="?page=<?php echo $current_page + 1; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>" class="page-btn">Next &raquo;</a>
+                        <a href="?page=<?php echo $total_pages; ?>&status=<?php echo $filter_status; ?>&date=<?php echo $filter_date; ?>" class="page-btn">Last &raquo;&raquo;</a>
                     <?php else: ?>
                         <span class="page-btn disabled">Next &raquo;</span>
-                    <?php endif; ?>
-
-                    <!-- Last Page Button -->
-                    <?php if ($current_page < $total_pages): ?>
-                        <a href="?page=<?php echo $total_pages; ?>" class="page-btn">Last &raquo;&raquo;</a>
-                    <?php else: ?>
                         <span class="page-btn disabled">Last &raquo;&raquo;</span>
                     <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
-     
     </div>
 
-    <!-- ==========================================
-         RESTOCK MODAL POPUP
-         ========================================== -->
     <div id="restockModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -746,19 +882,15 @@ if (!$result) {
                         <label for="event_id">Select Event *</label>
                         <select id="event_id" name="event_id" required onchange="updateEventInfo()">
                             <option value="">Select event</option>
-                            <option value="1">-- The Big Rave Night --</option>
-                            <option value="2">-- Summer EDM Fest --</option>
-                            <option value="3">-- Hip-Hop Showcase --</option>
-                            <option value="4">-- New Year's Eve Bash --</option>
-    <?php foreach ($events as $event): ?>
-        <option 
-            value="<?php echo htmlspecialchars($event['id']); ?>" 
-            data-tickets="<?php echo htmlspecialchars($event['available_tickets']); ?>"
-            data-price="<?php echo htmlspecialchars($event['price']); ?>">
-            <?php echo htmlspecialchars($event['event_name']); ?>
-        </option>
-    <?php endforeach; ?>
-</select>
+                            <?php foreach ($events as $event): ?>
+                                <option 
+                                    value="<?php echo htmlspecialchars($event['id']); ?>" 
+                                    data-tickets="<?php echo htmlspecialchars($event['available_tickets']); ?>"
+                                    data-price="<?php echo htmlspecialchars($event['price']); ?>">
+                                    <?php echo htmlspecialchars($event['event_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                         <div id="event-info" class="event-info"></div>
                     </div>
                     
@@ -784,31 +916,22 @@ if (!$result) {
         </div>
     </div>
 
-    <!-- ==========================================
-         JAVASCRIPT
-         ========================================== -->
     <script>
-        // ==========================================
-        // MODAL FUNCTIONALITY
-        // ==========================================
         const modal = document.getElementById('restockModal');
         const openBtn = document.getElementById('openRestockModal');
         const closeBtn = document.querySelector('.close-modal');
         
-        // Open modal when button is clicked
         openBtn.onclick = function(e) {
             e.preventDefault();
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
         
-        // Close modal when X is clicked
         closeBtn.onclick = function() {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
         }
         
-        // Close modal when clicking outside of it
         window.onclick = function(event) {
             if (event.target == modal) {
                 modal.style.display = 'none';
@@ -816,7 +939,6 @@ if (!$result) {
             }
         }
         
-        // Close modal with Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape' && modal.style.display === 'block') {
                 modal.style.display = 'none';
@@ -824,58 +946,41 @@ if (!$result) {
             }
         });
         
-        // Auto-open modal if there's a restock message or error
         <?php if ($restock_message || $restock_error): ?>
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
         <?php endif; ?>
         
-        // ==========================================
-        // EVENT INFO UPDATE
-        // ==========================================
         function updateEventInfo() {
-    const select = document.getElementById('event_id');
-    const infoDiv = document.getElementById('event-info');
-    const priceInput = document.getElementById('price');
-    
-    // Check if an option is selected
-    if (select.selectedIndex > 0) {
-        const option = select.options[select.selectedIndex];
-        
-        // Get attributes with fallback values
-        const currentTickets = option.getAttribute('data-tickets') || '0';
-        const currentPrice = option.getAttribute('data-price') || '0';
-        
-        // Debug: Check if values are being retrieved
-        console.log('Selected option:', option);
-        console.log('Tickets:', currentTickets);
-        console.log('Price:', currentPrice);
-        
-        // Validate that we have actual values
-        if (currentTickets && currentPrice) {
-            const ticketsNum = parseInt(currentTickets, 10);
-            const priceNum = parseFloat(currentPrice);
+            const select = document.getElementById('event_id');
+            const infoDiv = document.getElementById('event-info');
+            const priceInput = document.getElementById('price');
             
-            infoDiv.innerHTML = `Current: ${ticketsNum} tickets available @ ₱${priceNum.toFixed(2)}`;
-            infoDiv.style.display = 'block';
-            priceInput.value = priceNum.toFixed(2);
-        } else {
-            infoDiv.innerHTML = 'Unable to load event information';
-            infoDiv.style.display = 'block';
+            if (select.selectedIndex > 0) {
+                const option = select.options[select.selectedIndex];
+                const currentTickets = option.getAttribute('data-tickets') || '0';
+                const currentPrice = option.getAttribute('data-price') || '0';
+                
+                if (currentTickets && currentPrice) {
+                    const ticketsNum = parseInt(currentTickets, 10);
+                    const priceNum = parseFloat(currentPrice);
+                    
+                    infoDiv.innerHTML = `Current: ${ticketsNum} tickets available @ ₱${priceNum.toFixed(2)}`;
+                    infoDiv.style.display = 'block';
+                    priceInput.value = priceNum.toFixed(2);
+                } else {
+                    infoDiv.innerHTML = 'Unable to load event information';
+                    infoDiv.style.display = 'block';
+                }
+            } else {
+                infoDiv.innerHTML = '';
+                infoDiv.style.display = 'none';
+                priceInput.value = '';
+            }
         }
-    } else {
-        infoDiv.innerHTML = '';
-        infoDiv.style.display = 'none';
-        priceInput.value = '';
-    }
-}
-
     </script>
     
     <?php
-    // ==========================================
-    // CLEANUP
-    // ==========================================
     $stmt->close();
     $conn->close();
     ?>

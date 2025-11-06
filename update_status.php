@@ -34,8 +34,8 @@ try {
     $new_status = match($action) {
         'accept' => 'confirmed',
         'reject' => 'expired',
-        'pending' => 'Pending Verification',
-        default => 'Pending Verification'
+        'pending' => 'pending',
+        default => 'pending'
     };
     
     // Update ticket status

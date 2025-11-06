@@ -610,7 +610,7 @@ function getTicketPaginationUrl($page, $status_filter) {
                                             <?php echo htmlspecialchars(ucfirst($status)); ?>
                                         </span>
                                     </td>
-                                    <td><strong>$<?php echo number_format($ticket['price'] ?? 0, 2); ?></strong></td>
+                                    <td><strong>₱<?php echo number_format($ticket['price'] ?? 0, 2); ?></strong></td>
                                     <td><?php echo htmlspecialchars($ticket['payment_reference'] ?? 'N/A'); ?></td>
                                     <td>
                                         <?php 
@@ -681,7 +681,7 @@ function getTicketPaginationUrl($page, $status_filter) {
                         <strong>Total Tickets:</strong> <?php echo $total_ticket_records; ?>
                     </div>
                     <div>
-                        <strong>Total Spent:</strong> <span style="font-size: 20px; font-weight: 700;">$<?php echo number_format($total_spent, 2); ?></span>
+                        <strong>Total Spent:</strong> <span style="font-size: 20px; font-weight: 700;">₱<?php echo number_format($total_spent, 2); ?></span>
                     </div>
                 </div>
                 

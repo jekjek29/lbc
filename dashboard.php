@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Hardcoded image mapping (since your database has path issues)
+// Hardcoded image mapping
 $eventImages = [
     1 => 'images/logo.jpg',
     2 => 'images/logo.jpg',
@@ -33,6 +33,23 @@ if ($result->num_rows > 0) {
         $events[] = $row;
     }
 }
+
+// **CHECK USER'S EXISTING TICKET COUNT FOR EACH EVENT**
+$user_id = $_SESSION['user_id'];
+$ticket_counts_query = "SELECT event_id, SUM(CASE WHEN status IN ('pending', 'confirmed') THEN 1 ELSE 0 END) as total_tickets 
+                        FROM tickets 
+                        WHERE user_id = ? 
+                        GROUP BY event_id";
+$stmt = $conn->prepare($ticket_counts_query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$ticket_result = $stmt->get_result();
+
+$user_ticket_counts = [];
+while($row = $ticket_result->fetch_assoc()) {
+    $user_ticket_counts[$row['event_id']] = $row['total_tickets'];
+}
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,6 +84,10 @@ if ($result->num_rows > 0) {
                 $js_event_name = addslashes($event['name']);
                 $js_event_datetime = addslashes($event['datetime']);
                 $imagePath = isset($eventImages[$event['id']]) ? $eventImages[$event['id']] : 'images/logo.jpg';
+                
+                // Calculate user's current tickets for this event
+                $user_current_tickets = isset($user_ticket_counts[$event['id']]) ? $user_ticket_counts[$event['id']] : 0;
+                $user_remaining_limit = 10 - $user_current_tickets;
 
                 echo '<div class="event" data-event-id="' . $event['id'] . '">';
                 echo '<img src="' . htmlspecialchars($imagePath) . '" 
@@ -80,13 +101,22 @@ if ($result->num_rows > 0) {
                 // **DISPLAY AVAILABILITY**
                 echo '<p class="availability">Available: ' . htmlspecialchars($event['available_tickets']) . ' / ' . htmlspecialchars($event['capacity']) . ' tickets</p>';
                 
+                // Show user's purchase limit
+                if ($user_remaining_limit <= 0) {
+                    echo '<p class="user-limit" style="color: #dc3545; font-size: 13px;">You\'ve reached the maximum purchase limit (10 tickets)</p>';
+                } else {
+                    echo '<p class="user-limit" style="color: #28a745; font-size: 13px;">You can purchase up to ' . $user_remaining_limit . ' more ticket(s)</p>';
+                }
+                
                 // **SHOW BUTTON OR SOLD OUT**
-                if ($event['available_tickets'] > 0) {
+                if ($event['available_tickets'] > 0 && $user_remaining_limit > 0) {
                     echo '<button 
                             class="buy-tickets-btn" 
-                            onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ')">
+                            onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ', ' . $user_remaining_limit . ')">
                             Buy Tickets
                           </button>';
+                } elseif ($user_remaining_limit <= 0) {
+                    echo '<button class="buy-tickets-btn sold-out" disabled>Purchase Limit Reached</button>';
                 } else {
                     echo '<button class="buy-tickets-btn sold-out" disabled>Sold Out</button>';
                 }
@@ -107,13 +137,16 @@ if ($result->num_rows > 0) {
                 <h4 id="modalEventName"></h4>
                 <p id="modalEventDateTime"></p>
                 <input type="hidden" id="modalEventId">
+                <input type="hidden" id="userRemainingLimit">
             </div>
             <form id="ticketQuantityForm">
                 <div class="ticket-details">
                     <p>Price per Ticket: <span id="modalTicketPrice"></span></p>
+                    <p style="color: #28a745; font-weight: 600;">You can purchase up to <span id="maxTicketsDisplay"></span> ticket(s)</p>
                     <div class="form-group">
                         <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+                        <input type="number" id="quantity" name="quantity" min="1" max="10" value="1" required>
+                        <small style="color: #6c757d;">Maximum 10 tickets per person, up to 50 total per event</small>
                     </div>
                     <p>Total Amount: <strong id="totalAmountDisplay">₱0.00</strong></p>
                 </div>
@@ -212,15 +245,16 @@ if ($result->num_rows > 0) {
         // Global variables to store ticket data temporarily
         let currentEventPrice = 0;
         let currentEventId = 0;
+        let maxAllowedTickets = 10;
 
-        // References to all modals (Adjusted to match 5 steps)
+        // References to all modals
         const modal1 = document.getElementById("modalStep1");
         const modal2 = document.getElementById("modalStep2");
         const modal3 = document.getElementById("modalStep3");
         const modal4 = document.getElementById("modalStep4");
         const modal5 = document.getElementById("modalStep5");
 
-        // Function to close all modals and clear overlay
+        // Function to close all modals
         function closeAllModals() {
             modal1.style.display = "none";
             modal2.style.display = "none";
@@ -230,20 +264,41 @@ if ($result->num_rows > 0) {
         }
 
         // Function to open the first step and populate event details
-        function openStep1(name, datetime, price, id) {
+        function openStep1(name, datetime, price, id, userRemainingLimit) {
             currentEventPrice = price;
             currentEventId = id;
+            maxAllowedTickets = userRemainingLimit;
+            
             document.getElementById('modalEventName').textContent = name;
             document.getElementById('modalEventDateTime').textContent = datetime;
             document.getElementById('modalTicketPrice').textContent = '₱' + price.toFixed(2);
             document.getElementById('modalEventId').value = id;
+            document.getElementById('userRemainingLimit').value = userRemainingLimit;
+            document.getElementById('maxTicketsDisplay').textContent = userRemainingLimit;
 
-            document.getElementById('quantity').value = 1;
+            // Set quantity input constraints
+            const quantityInput = document.getElementById('quantity');
+            quantityInput.value = 1;
+            quantityInput.max = userRemainingLimit;
+            
             const initialTotal = (currentEventPrice * 1).toFixed(2);
             document.getElementById('totalAmountDisplay').textContent = '₱' + initialTotal;
 
-            document.getElementById('quantity').oninput = function() {
-                const quantity = parseInt(this.value) || 1;
+            quantityInput.oninput = function() {
+                let quantity = parseInt(this.value) || 1;
+                
+                // Enforce maximum limit
+                if (quantity > maxAllowedTickets) {
+                    quantity = maxAllowedTickets;
+                    this.value = maxAllowedTickets;
+                    alert('You can only purchase up to ' + maxAllowedTickets + ' ticket(s) for this event.');
+                }
+                
+                if (quantity < 1) {
+                    quantity = 1;
+                    this.value = 1;
+                }
+                
                 const totalAmount = (currentEventPrice * quantity).toFixed(2);
                 document.getElementById('totalAmountDisplay').textContent = '₱' + totalAmount;
             };
@@ -251,12 +306,16 @@ if ($result->num_rows > 0) {
             modal1.style.display = "block";
         }
 
-        // Function to navigate between modal steps (Updated for 5 steps)
+        // Function to navigate between modal steps
         function nextModal(currentStep, nextStep) {
             if (currentStep === 1 && nextStep === 2) {
                 const quantity = parseInt(document.getElementById('quantity').value);
                 if (quantity < 1) {
                     alert('Please select at least 1 ticket.');
+                    return;
+                }
+                if (quantity > maxAllowedTickets) {
+                    alert('You can only purchase up to ' + maxAllowedTickets + ' ticket(s) for this event.');
                     return;
                 }
                 const totalAmount = (currentEventPrice * quantity).toFixed(2);
@@ -287,7 +346,7 @@ if ($result->num_rows > 0) {
             }
         }
 
-        // This function is called only from Step 4 (Confirmation)
+        // Submit order function
         function submitOrderAndNext(currentStep, nextStep) {
             const paymentForm = document.getElementById('paymentForm');
             if (!paymentForm.checkValidity()) {
@@ -335,7 +394,7 @@ if ($result->num_rows > 0) {
             });
         }
 
-        // Enforce digit-only and maxlength for GCash Reference and Account Number in Step 3
+        // Enforce digit-only for reference and account number
         document.addEventListener('DOMContentLoaded', function () {
             var refField = document.getElementById('ref_number');
             if (refField) {

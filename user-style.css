@@ -454,12 +454,6 @@ button[type="submit"]:hover,
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.event-image {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-}
 
 .event-details {
   display: flex;
