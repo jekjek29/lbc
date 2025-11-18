@@ -7,8 +7,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-
-// Event image mapping (update IDs and filenames as needed)
 $eventImages = [
     3 => 'images/landing1.jpg',
     4 => 'images/landing2.jpg',
@@ -16,7 +14,6 @@ $eventImages = [
     6 => 'images/landing4.jpg'
 ];
 
-// Fetch all events from database
 $event_sql = "SELECT id, title, event_date, event_time, venue, location FROM events";
 $event_result = $conn->query($event_sql);
 if (!$event_result) {
@@ -31,19 +28,12 @@ while ($row = $event_result->fetch_assoc()) {
         'address'  => $row['location']
     ];
 }
-
-// Pagination
 $records_per_page = 9;
 $current_page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-
-// Filters
 $status_filter = $_GET['status'] ?? '';
-
-// Build count query
 $count_sql = "SELECT COUNT(*) as total FROM tickets WHERE user_id = ?";
 $count_params = "i";
 $count_values = [$user_id];
-
 if (!empty($status_filter) && in_array($status_filter, ['confirmed', 'pending', 'rejected'])) {
     $count_sql .= " AND status = ?";
     $count_params .= "s";
@@ -55,11 +45,9 @@ $count_stmt->execute();
 $count_result = $count_stmt->get_result();
 $total_records = $count_result->fetch_assoc()['total'];
 $count_stmt->close();
-
 $total_pages = ceil($total_records / $records_per_page);
 $offset = ($current_page - 1) * $records_per_page;
 
-// Main query
 $sql = "SELECT * FROM tickets WHERE user_id = ?";
 $params = "i";
 $values = [$user_id];
@@ -81,9 +69,236 @@ $tickets = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets - LBC</title>
+    <link rel="stylesheet" href="user-style.css">
+    <!-- Modal Styles -->
+    <style>
+    /* Modal overlay */
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.72);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
+    .modal-overlay.active { display: flex; }
+
+    /* Modal box */
+    .ticket-modal {
+        background: #181b1b;
+        border-radius: 1.33rem;
+        box-shadow: 0 12px 44px rgba(0,0,0,0.45);
+        width: 98vw;
+        max-width: 420px;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+    }
+    .ticket-modal-header {
+        background: #121616;
+        color: #8DDEF1;
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.7rem 0.6rem 1.2rem;
+        border-bottom: 1.5px solid #8DDEF1;
+    }
+    .ticket-modal-header h3 {
+        flex: 1;
+        font-size: 1.35rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    .ticket-modal-close {
+        background: transparent;
+        border: none;
+        color: #bbb;
+        font-size: 2rem;
+        cursor: pointer;
+        margin-right: 2px;
+    }
+    .ticket-modal-img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-bottom: 2px solid #8DDEF1;
+        background: #212324;
+    }
+    .ticket-modal-info {
+        padding: 1.3rem 1.7rem;
+        color: #fff;
+    }
+    .ticket-modal-info p {
+        font-size: 1.08rem;
+        margin: 0.7rem 0;
+        color: #d1e4e5;
+    }
+    .ticket-modal-actions {
+        display: flex;
+        justify-content: right;
+        padding: 1.15rem 1.6rem 1.15rem 1.6rem;
+        background: #232728;
+    }
+    .btn-modal-print {
+    padding: 0.6rem 1.35rem;
+    background: linear-gradient(135deg, var(--medium-blue), var(--light-cyan));
+    color: var(--white);
+    font-weight: 800;
+    border: none;
+    border-radius: 2rem;
+    font-size: 1.15rem;
+    margin-right: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(55,104,173,0.13);
+    transition: background 0.18s, transform 0.14s;
+    text-decoration: none;
+    text-align: center;
+    letter-spacing: 0.6px;
+    display: inline-block;
+}
+.btn-modal-print:hover {
+    background: linear-gradient(135deg, var(--deep-blue), var(--medium-blue));
+    color: var(--white);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 28px rgba(55,104,173,0.24);
+    outline: none;
+}
+
+@media print {
+    html, body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        box-shadow: none !important;
+    }
+    body * {
+        visibility: hidden !important;
+        box-shadow: none !important;
+        background: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+    }
+    /* Only display modal content */
+    .modal-overlay.active,
+    .modal-overlay.active .ticket-modal,
+    .modal-overlay.active .ticket-modal * {
+        visibility: visible !important;
+        position: static !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-width: 440px !important;
+        min-width: 260px !important;
+        z-index: 99999 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+    }
+    .modal-overlay.active {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: none !important;
+    }
+    .ticket-modal {
+        margin: 0 auto !important;
+        border: 2.5px solid #8DDEF1 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 8px rgba(141,222,241,0.17) !important;
+        color: #222 !important;
+        background: #fff !important;
+        position: static !important;
+    }
+    .ticket-modal-header, .ticket-modal-info, .ticket-modal-actions {
+        page-break-inside: avoid !important;
+        background: #f7fcfd !important;
+    }
+    .ticket-modal-close, .ticket-modal-actions button:not(.btn-modal-print) {
+        display: none !important;
+    }
+    /* Optional: visually pad for print */
+    .ticket-modal-header {
+        padding: 1.25rem 1.5rem 0.8rem 1.5rem !important;
+        color: #069672 !important;
+        font-size: 1.32rem !important;
+        border-bottom: 2px solid #8DDEF1 !important;
+        border-radius: 8px 8px 0 0 !important;
+        background: #eafffb !important;
+        font-family: 'Segoe UI', Arial, sans-serif !important;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    .ticket-modal-img {
+        display: block !important;
+        width: 100% !important;
+        height: 115px !important;
+        object-fit: cover !important;
+        margin-bottom: 1rem !important;
+        border-bottom: 2px solid #8DDEF1 !important;
+        background: #f3f8fe !important;
+    }
+    .ticket-modal-info {
+        font-family: 'Segoe UI', Arial, sans-serif !important;
+        font-size: 1.07rem !important;
+        line-height: 1.65 !important;
+        padding: 1.15rem 1.45rem !important;
+        color: #1a2326 !important;
+    }
+    .ticket-modal-info p {
+        margin: 0.48rem 0 !important;
+        padding: 0 0 0.12rem 0 !important;
+        border-bottom: 1px solid #e7f2f6 !important;
+        font-size: 1.03rem !important;
+    }
+    .ticket-modal-info p:last-child { border-bottom: none !important; }
+    .ticket-modal-actions {
+        padding: 0.8rem 1.3rem 1.2rem 1.3rem !important;
+        background: #f7fcfd !important;
+        border-top: 2px solid #8DDEF1 !important;
+        border-radius: 0 0 8px 8px !important;
+    }
+    .btn-modal-print {
+        background: linear-gradient(90deg,#8DDEF1,#069672 98%) !important;
+        color: #181b1b !important;
+        font-weight: bold !important;
+        border-radius: 2rem !important;
+        text-align: right !important;
+        font-size: 1.14rem !important;
+        padding: 0.40rem 1.4rem !important;
+        border: none !important;
+        outline: none !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+     .ticket-modal-actions .btn-modal-print,
+    .ticket-modal-actions .ticket-modal-close {
+        display: none !important;
+    }
+}
+
+
+
+
+
+    </style>
+</head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Tickets - LBC</title>
@@ -178,7 +393,7 @@ $conn->close();
     }
     .ticket-card .btn-primary {
         width: 100%;
-        margin: 1.1rem 0 0 0;
+        margin: 1.1rem 0 0 0; 
         padding: 1rem 0;
         background: linear-gradient(135deg, var(--medium-blue), var(--light-cyan));
         color: var(--white);
@@ -334,12 +549,26 @@ $conn->close();
 </div>
 
         <!-- Tickets Display -->
-        <?php if (count($tickets) > 0): ?>
+       <?php if (count($tickets) > 0): ?>
             <div class="tickets-grid">
                 <?php foreach ($tickets as $ticket): ?>
                     <?php
                     $event = $events[$ticket['event_id']] ?? ['name' => 'Unknown Event', 'datetime' => 'TBA', 'venue' => 'TBA', 'address' => 'TBA'];
                     $imagePath = isset($eventImages[$ticket['event_id']]) ? $eventImages[$ticket['event_id']] : 'images/logo.jpg';
+                    // Compose relevant data for JS modal trigger
+                    $ticketData = htmlspecialchars(json_encode([
+                        'id' => $ticket['id'],
+                        'number' => $ticket['ticket_number'],
+                        'event' => $event['name'],
+                        'date' => $event['datetime'],
+                        'venue' => $event['venue'],
+                        'address' => $event['address'],
+                        'type' => $ticket['ticket_type'],
+                        'price' => number_format($ticket['price'], 2),
+                        'purchase_date' => date('M d, Y', strtotime($ticket['purchase_date'])),
+                        'img' => $imagePath,
+                        'status' => ucfirst($ticket['status'])
+                    ]));
                     ?>
                     <div class="ticket-card">
                         <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Event Image" class="ticket-card-img" onerror="this.src='images/logo.jpg'">
@@ -358,7 +587,9 @@ $conn->close();
                             <p><strong>📆 Purchase Date:</strong> <?php echo date('M d, Y', strtotime($ticket['purchase_date'])); ?></p>
                         </div>
                         <?php if ($ticket['status'] == 'confirmed'): ?>
-                            <a href="view_tickets.php?id=<?php echo $ticket['id']; ?>" class="btn-primary">View Ticket</a>
+                            <a href="javascript:void(0);" 
+                                class="btn-primary view-ticket-btn"
+                                data-ticket='<?php echo $ticketData; ?>'>View Ticket</a>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
@@ -401,5 +632,85 @@ $conn->close();
             </div>
         <?php endif; ?>
     </div>
+    <div class="modal-overlay" id="ticketModalOverlay">
+        <div class="ticket-modal" id="ticketModal">
+            <div class="ticket-modal-header">
+                <h3 id="modalEventName">Ticket Details</h3>
+                <button class="ticket-modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <img id="modalEventImage" class="ticket-modal-img" src="images/logo.jpg" alt="Event Image">
+            <div class="ticket-modal-info">
+                <p><b>Ticket #</b> <span id="modalTicketNumber"></span></p>
+                <p><b>Status:</b> <span id="modalTicketStatus"></span></p>
+                <p><b>Event:</b> <span id="modalTicketEvent"></span></p>
+                <p><b>Date & Time:</b> <span id="modalTicketDate"></span></p>
+                <p><b>Venue:</b> <span id="modalTicketVenue"></span></p>
+                <p><b>Address:</b> <span id="modalTicketAddress"></span></p>
+                <p><b>Type:</b> <span id="modalTicketType"></span></p>
+                <p><b>Price:</b> ₱<span id="modalTicketPrice"></span></p>
+                <p><b>Purchase Date:</b> <span id="modalTicketPurchase"></span></p>
+            </div>
+            <div class="ticket-modal-actions">
+                <button class="btn-modal-print" onclick="printModal()">Print Ticket</button>
+                <button class="btn-modal-print" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Modal element references
+    const modalOverlay = document.getElementById('ticketModalOverlay');
+    const modalEventName = document.getElementById('modalEventName');
+    const modalEventImage = document.getElementById('modalEventImage');
+    const modalTicketNumber = document.getElementById('modalTicketNumber');
+    const modalTicketStatus = document.getElementById('modalTicketStatus');
+    const modalTicketEvent = document.getElementById('modalTicketEvent');
+    const modalTicketDate = document.getElementById('modalTicketDate');
+    const modalTicketVenue = document.getElementById('modalTicketVenue');
+    const modalTicketAddress = document.getElementById('modalTicketAddress');
+    const modalTicketType = document.getElementById('modalTicketType');
+    const modalTicketPrice = document.getElementById('modalTicketPrice');
+    const modalTicketPurchase = document.getElementById('modalTicketPurchase');
+
+    function openModal(data) {
+        // Fill modal fields
+        modalEventName.textContent = 'Ticket for ' + (data.event || 'Unknown');
+        modalEventImage.src = data.img || 'images/logo.jpg';
+        modalTicketNumber.textContent = data.number || '';
+        modalTicketStatus.textContent = data.status || '';
+        modalTicketEvent.textContent = data.event || '';
+        modalTicketDate.textContent = data.date || '';
+        modalTicketVenue.textContent = data.venue || '';
+        modalTicketAddress.textContent = data.address || '';
+        modalTicketType.textContent = data.type || '';
+        modalTicketPrice.textContent = data.price || '';
+        modalTicketPurchase.textContent = data.purchase_date || '';
+        modalOverlay.classList.add('active');
+    }
+    function closeModal() {
+        modalOverlay.classList.remove('active');
+    }
+    function printModal() {
+        window.print();
+    }
+
+    // Attach click events automatically to each "View Ticket" button
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.view-ticket-btn').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                const ticketData = JSON.parse(btn.getAttribute('data-ticket'));
+                openModal(ticketData);
+            });
+        });
+        // Close modal when clicking outside modal box
+        modalOverlay.addEventListener('click', function(event){
+            if (event.target === modalOverlay) { closeModal(); }
+        });
+        // Optional: Escape key closes modal
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape') closeModal();
+        });
+    });
+    </script>
 </body>
 </html>
