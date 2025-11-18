@@ -1,0 +1,609 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Lost Boys Club - Events & Community</title>
+        
+        <style>
+            :root {
+                --color-cream-50: rgba(252, 252, 249, 1);
+                --color-cream-100: rgba(255, 255, 253, 1);
+                --color-gray-200: rgba(245, 245, 245, 1);
+                --color-gray-300: rgba(167, 169, 169, 1);
+                --color-slate-500: rgba(98, 108, 113, 1);
+                --color-brown-600: rgba(94, 82, 64, 1);
+                --color-charcoal-700: rgba(31, 33, 33, 1);
+                --color-charcoal-800: rgba(38, 40, 40, 1);
+                --color-slate-900: rgba(19, 52, 59, 1);
+                --color-teal-300: rgba(50, 184, 198, 1);
+                --color-teal-500: rgba(33, 128, 141, 1);
+                --color-teal-600: rgba(29, 116, 128, 1);
+                --color-brown-600-rgb: 94, 82, 64;
+                --color-teal-500-rgb: 33, 128, 141;
+                --color-slate-900-rgb: 19, 52, 59;
+                --color-background: var(--color-cream-50);
+                --color-surface: var(--color-cream-100);
+                --color-text: var(--color-slate-900);
+                --color-text-secondary: var(--color-slate-500);
+                --color-primary: var(--color-teal-500);
+                --color-primary-hover: var(--color-teal-600);
+                --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+                --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+                --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+                --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+                --color-btn-primary-text: var(--color-cream-50);
+                
+                --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                --space-8: 8px;
+                --space-12: 12px;
+                --space-16: 16px;
+                --space-20: 20px;
+                --space-24: 24px;
+                --space-32: 32px;
+                --radius-base: 8px;
+                --radius-lg: 12px;
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+                --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --color-background: var(--color-charcoal-700);
+                    --color-surface: var(--color-charcoal-800);
+                    --color-text: var(--color-gray-200);
+                    --color-text-secondary: rgba(167, 169, 169, 0.7);
+                    --color-primary: var(--color-teal-300);
+                    --color-border: rgba(119, 124, 124, 0.3);
+                    --color-card-border: rgba(119, 124, 124, 0.2);
+                    --color-btn-primary-text: var(--color-slate-900);
+                }
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: var(--font-family-base);
+                background-color: var(--color-background);
+                color: var(--color-text);
+                line-height: 1.6;
+            }
+
+            .navbar {
+                background-color: var(--color-surface);
+                border-bottom: 1px solid var(--color-border);
+                padding: var(--space-16) var(--space-32);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .logo h1 {
+                font-size: 24px;
+                font-weight: 600;
+                color: var(--color-text);
+            }
+
+            .nav-content {
+                display: flex;
+                align-items: center;
+                gap: var(--space-16);
+            }
+
+            .user-info {
+                display: flex;
+                align-items: center;
+                gap: var(--space-12);
+            }
+
+            .user-name {
+                font-size: 14px;
+                color: var(--color-text-secondary);
+            }
+
+            .btn {
+                padding: var(--space-8) var(--space-16);
+                border-radius: var(--radius-base);
+                font-size: 14px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.25s;
+                text-decoration: none;
+                border: none;
+                display: inline-block;
+            }
+
+            .btn--primary {
+                background: var(--color-primary);
+                color: var(--color-btn-primary-text);
+            }
+
+            .btn--primary:hover {
+                background: var(--color-primary-hover);
+            }
+
+            .btn--outline {
+                background: transparent;
+                border: 1px solid var(--color-border);
+                color: var(--color-text);
+            }
+
+            .btn--outline:hover {
+                background: var(--color-secondary);
+            }
+
+            .hero {
+                background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)),
+                url("images/login_bg.jpg");
+                background-size: cover;
+                background-position: center center;
+                background-repeat: no-repeat;
+        
+                color: white;
+                padding: 80px var(--space-32);
+                text-align: center;
+            }
+
+            .hero h2 {
+                font-size: 48px;
+                font-weight: 700;
+                margin-bottom: var(--space-16);
+            }
+
+            .hero p {
+                font-size: 20px;
+                opacity: 0.95;
+                max-width: 600px;
+                margin: 0 auto var(--space-32);
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: var(--space-32);
+            }
+
+            .section {
+                margin-bottom: 60px;
+            }
+
+            .section-title {
+                font-size: 32px;
+                font-weight: 600;
+                margin-bottom: var(--space-24);
+                color: var(--color-text);
+            }
+
+            .events-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+                gap: var(--space-24);
+            }
+
+            .event-card {
+                background: var(--color-surface);
+                border: 1px solid var(--color-card-border);
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+                box-shadow: var(--shadow-sm);
+                transition: all 0.3s;
+            }
+
+            .event-card:hover {
+                box-shadow: var(--shadow-md);
+                transform: translateY(-2px);
+            }
+
+            .event-image {
+        width: 100%;
+        height: 200px;
+        /* Keeps the overflow hidden for sharp corners */
+        overflow: hidden; 
+        /* Ensures the div is visible even if image is loading */
+        background-color: var(--color-gray-300); 
+        /* The image will now handle the visual presentation */
+        /* Remove display: flex, justify-content, etc. since the image is the content */
+    }
+
+    /* NEW RULE: Make the image fill the container and crop nicely */
+    .event-image img {
+        width: 100%;
+        height: 100%;
+        /* Key property: ensures the image covers the area without stretching */
+        object-fit: cover; 
+        /* Centers the image content */
+        object-position: center; 
+    }
+
+            .event-content {
+                padding: var(--space-20);
+            }
+
+            .event-date {
+                display: inline-block;
+                background: var(--color-secondary);
+                color: var(--color-primary);
+                padding: 4px var(--space-12);
+                border-radius: var(--radius-base);
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: var(--space-12);
+            }
+
+            .event-title {
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: var(--space-8);
+                color: var(--color-text);
+            }
+
+            .event-description {
+                font-size: 14px;
+                color: var(--color-text-secondary);
+                margin-bottom: var(--space-16);
+                line-height: 1.6;
+            }
+
+        
+.event-meta {
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: nowrap;
+gap: var(--space-16);
+font-size: 13px;
+color: var(--color-text-secondary);
+margin-bottom: var(--space-16);
+}
+
+.event-meta span {
+display: flex;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
+}
+
+
+
+
+            .event-action {
+             display: flex;
+             justify-content: center;
+            gap: var(--space-8);
+           }
+
+
+            .btn--small {
+                padding: 6px var(--space-12);
+                font-size: 13px;
+            }
+
+            .past-event-card {
+                opacity: 0.85;
+            }
+
+            .past-event-card .event-date {
+                background: var(--color-secondary);
+                color: var(--color-text-secondary);
+            }
+
+            .stats-section {
+                background: var(--color-surface);
+                border: 1px solid var(--color-card-border);
+                border-radius: var(--radius-lg);
+                padding: var(--space-32);
+                margin-bottom: 60px;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: var(--space-32);
+            }
+
+            .stat-item {
+                text-align: center;
+            }
+
+            .stat-number {
+                font-size: 48px;
+                font-weight: 700;
+                color: var(--color-primary);
+                line-height: 1;
+                margin-bottom: var(--space-8);
+            }
+
+            .stat-label {
+                font-size: 14px;
+                color: var(--color-text-secondary);
+            }
+
+            @media (max-width: 768px) {
+                .navbar {
+                    flex-direction: column;
+                    gap: var(--space-16);
+                }
+
+                .hero h2 {
+                    font-size: 32px;
+                }
+
+                .hero p {
+                    font-size: 16px;
+                }
+
+                .events-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .stats-section {
+                    grid-template-columns: 1fr;
+                    gap: var(--space-20);
+                }
+                
+            }
+        </style>
+    </head>
+    <body>
+        <header class="navbar">
+            <div class="logo">
+                <h1>Lost Boys Club</h1>
+            </div>
+
+            <div class="nav-content" id="navContent">
+                <div class="user-info">
+                    
+                    <a href="register.php" class="btn btn--outline">Sign Up</a>
+                    <a href="login.php" class="btn btn--primary">Login</a>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h2>Welcome to Lost Boys Club</h2>
+            <p>Join our community of adventurers, dreamers, and creators. Experience unforgettable events and build lasting connections.</p>
+        </section>
+
+
+
+        
+    
+            <section class="section" id="upcoming">
+                <h2 class="section-title">Upcoming Events</h2>
+                <div class="events-grid">
+                    <div class="event-card">
+                        <div class="event-image">
+                            <img src="images/landing1.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">NOV 15, 2025</span>
+                            <h3 class="event-title">Summer Music Festival</h3>
+                            <p class="event-description">Join us for an unforgettable night of live music featuring local and international artists. Food trucks, craft beer, and good vibes all around.</p>
+                            <div class="event-meta">
+                                <span>📍 Central Park</span>
+                                <span>⏰ 6:00 PM - 11:00 PM</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="register.php" class="btn btn--primary btn--small">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card">
+                        <div class="event-image">
+                            <img src="images/landing2.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">NOV 22-24, 2025</span>
+                            <h3 class="event-title">Weekend Camping Adventure</h3>
+                            <p class="event-description">Escape the city and reconnect with nature. Three days of hiking, campfire stories, stargazing, and building friendships that last a lifetime.</p>
+                            <div class="event-meta">
+                                <span>📍 Redwood Forest</span>
+                                <span>⏰ All Day</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="register.php" class="btn btn--primary btn--small">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card">
+                        <div class="event-image">
+                            <img src="images/landing3.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">DEC 05, 2025</span>
+                            <h3 class="event-title">Creative Arts Workshop</h3>
+                            <p class="event-description">Unleash your creativity in this hands-on workshop. Learn painting, sculpting, and digital art from professional artists. All skill levels welcome!</p>
+                            <div class="event-meta">
+                                <span>📍 Studio Downtown</span>
+                                <span>⏰ 2:00 PM - 6:00 PM</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="#" class="btn btn--primary btn--small">Book now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card">
+                        <div class="event-image">
+                            <img src="images/landing4.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">DEC 12, 2025</span>
+                            <h3 class="event-title">Gaming Tournament Night</h3>
+                            <p class="event-description">Battle it out in our epic gaming tournament! Multiple game stations, prizes for winners, and a night of competitive fun with fellow gamers.</p>
+                            <div class="event-meta">
+                                <span>📍 Gaming Lounge</span>
+                                <span>⏰ 7:00 PM - 12:00 AM</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="register.php" class="btn btn--primary btn--small">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card">
+                        <div class="event-image"> 
+                            <img src="images/landing5.jpg">  
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">DEC 18, 2025</span>
+                            <h3 class="event-title">Food & Culture Night</h3>
+                            <p class="event-description">Experience flavors from around the world! Cooking demonstrations, cultural performances, and unlimited tastings from diverse cuisines.</p>
+                            <div class="event-meta">
+                                <span>📍 Community Center</span>
+                                <span>⏰ 5:00 PM - 9:00 PM</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="register.php" class="btn btn--primary btn--small">Book Now</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card">
+                        <div class="event-image">
+                            <img src="images/landing6.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">DEC 31, 2025</span>
+                            <h3 class="event-title">New Year's Eve Celebration</h3>
+                            <p class="event-description">Ring in the new year with the Lost Boys Club! Live DJ, champagne toast at midnight, photo booth, and dancing until dawn.</p>
+                            <div class="event-meta">
+                                <span>📍 Rooftop Venue</span>
+                                <span>⏰ 9:00 PM - 2:00 AM</span>
+                                <span>₱150.00</span>
+                            </div>
+                            <div class="event-action">
+                                <a href="register.php" class="btn btn--primary btn--small">Book  Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2 class="section-title">Past Events Highlights</h2>
+                <div class="events-grid">
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing7.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">OCT 08, 2025</span>
+                            <h3 class="event-title">Charity Marathon Run</h3>
+                            <p class="event-description">Over 300 participants joined our charity marathon, raising $25,000 for local youth programs. An inspiring day of fitness, community spirit, and giving back.</p>
+                            <div class="event-meta">
+                                <span>📍 City Stadium</span>
+                                <span>👥 300 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing8.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">SEP 20, 2025</span>
+                            <h3 class="event-title">Outdoor Movie Night</h3>
+                            <p class="event-description">A magical evening under the stars watching classic films. Complete with popcorn, blankets, and great company. Members voted it our best summer event!</p>
+                            <div class="event-meta">
+                                <span>📍 Riverside Park</span>
+                                <span>👥 450 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing9.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">AUG 12, 2025</span>
+                            <h3 class="event-title">Rock Climbing Expedition</h3>
+                            <p class="event-description">Members conquered new heights (literally!) at this thrilling rock climbing adventure. Professional guides ensured everyone safely reached their goals.</p>
+                            <div class="event-meta">
+                                <span>📍 Mountain Range</span>
+                                <span>👥 85 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing10.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">JUL 25, 2025</span>
+                            <h3 class="event-title">Open Mic Comedy Night</h3>
+                            <p class="event-description">Laughter filled the venue as members showcased their comedy talents. From first-timers to seasoned performers, everyone brought their A-game and hilarious stories.</p>
+                            <div class="event-meta">
+                                <span>📍 Comedy Club</span>
+                                <span>👥 200 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing11.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">JUN 15, 2025</span>
+                            <h3 class="event-title">Beach Cleanup & BBQ</h3>
+                            <p class="event-description">Community service meets summer fun! We cleaned 2 miles of coastline, collected 500+ pounds of trash, then celebrated with a beachside BBQ feast.</p>
+                            <div class="event-meta">
+                                <span>📍 Sunset Beach</span>
+                                <span>👥 180 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card past-event-card">
+                        <div class="event-image">
+                            <img src="images/landing12.jpg">
+                        </div>
+                        <div class="event-content">
+                            <span class="event-date">MAY 30, 2025</span>
+                            <h3 class="event-title">Book Club & Author Meet</h3>
+                            <p class="event-description">An intimate evening with bestselling author discussing their latest novel. Deep conversations, book signings, and passionate readers made this truly special.</p>
+                            <div class="event-meta">
+                                <span>📍 Local Bookstore</span>
+                                <span>👥 60 Attendees</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <script>
+            function toggleMenu() {
+                const navContent = document.getElementById('navContent');
+                navContent.classList.toggle('active');
+            }
+
+            document.addEventListener('click', function(event) {
+                const navbar = document.querySelector('.navbar');
+                const navContent = document.getElementById('navContent');
+                
+                if (!navbar.contains(event.target)) {
+                    navContent.classList.remove('active');
+                }
+            });
+
+          
+        </script>
+    </body>
+    </html>
