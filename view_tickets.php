@@ -1,136 +1,130 @@
 <?php
-session_start();
+include('connection.php');
 
-// In a real application, you would verify the user's access to this ticket
-// and fetch the ticket details from the database
-$ticket = [
-    'ticket_number' => 'LBC-' . strtoupper(uniqid()),
-    'event' => [
-        'title' => 'Sample Event Name',
-        'date' => 'October 15, 2023',
-        'time' => '8:00 PM',
-        'venue' => 'Sample Venue, City',
-        'address' => '123 Event St., Barangay, City',
-        'organizer' => 'Lost Boys Club'
-    ],
-    'holder' => [
-        'name' => $_SESSION['first_name'] . ' ' . $_SESSION['last_name'],
-        'email' => $_SESSION['email'] ?? 'user@example.com'
-    ],
-    'details' => [
-        'type' => 'General Admission',
-        'price' => 500.00,
-        'quantity' => 1,
-        'order_date' => date('F j, Y'),
-        'order_time' => date('g:i A')
-    ]
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$ticket_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Only fetch the needed fields + event_id for image mapping
+$sql = "SELECT 
+            ticket_number, price, status, payment_reference, payment_date, amount_paid, account_name, event_id
+        FROM tickets
+        WHERE id = ? AND user_id = ?";
+
+$stmt = $conn->prepare($sql);
+
+if ($stmt === false) {
+    die('<h2 style="color:#8DDEF1;text-align:center;margin-top:8rem;">SQL Error: ' . htmlspecialchars($conn->error) . '</h2>');
+}
+
+$stmt->bind_param("ii", $ticket_id, $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$ticket = $result->fetch_assoc();
+$stmt->close();
+$conn->close();
+
+if (!$ticket) {
+    echo "<h2 style='text-align:center;color:#8DDEF1;margin-top:8rem;'>Ticket not found.</h2>";
+    exit();
+}
+
+// Event image mapping
+$eventImages = [
+    3 => 'images/landing1.jpg',
+    4 => 'images/landing2.jpg',
+    5 => 'images/landing3.jpg',
+    6 => 'images/landing4.jpg'
 ];
 
-$event = [
-    'id' => $ticket['ticket_number'],
-    'title' => 'Event Title',
-    'date' => 'Date',
-    'time' => '',
-    'location' => 'Venue Name, City',
-    'description' => 'This is a sample event description. In a real application, this would be pulled from your database.',
-    'image' => 'images/logo.jpg',
-    'price' => 500, // Single price for all tickets
-    'available' => 200 // Total available tickets
-];
-
+// Choose image or fallback
+$imagePath = isset($eventImages[$ticket['event_id']]) ? $eventImages[$ticket['event_id']] : 'images/logo.jpg';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Ticket - Lost Boys Club</title>
-    <link rel="stylesheet" href="user-style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Ticket - Lost Boys Club</title>
+<link rel="stylesheet" href="user-style.css" />
+<style>
+.ticket-card {
+    max-width: 400px;
+    margin: 4rem auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 2px solid #8DDEF1;
+}
+.ticket-label {
+    color: #8DDEF1;
+    font-weight: bold;
+}
+.ticket-value {
+    color: #222;
+}
+.ticket-event-image {
+    max-width: 150px;
+    display: block;
+    margin: 0.8rem auto 0.4rem;
+    border-radius: 0.8rem;
+    border: 2px solid #8DDEF1;
+}
+.print-button {
+    margin: 2rem auto 0;
+    display: block;
+    background: #8DDEF1;
+    color: #222;
+    border: none;
+    border-radius: 0.4rem;
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+</style>
 </head>
 <body>
-    <div class="ticket-container">
-        <div class="ticket-header">
-            <h1>LOST BOYS CLUB</h1>
-            <p>OFFICIAL EVENT TICKET</p>
+<main>
+    <div class="ticket-card">
+        <h1 style="text-align:center;color:#8DDEF1;">LBC EVENT TICKET</h1>
+        <img src="<?php echo htmlspecialchars($imagePath); ?>" alt="Event Image" class="ticket-event-image" />
+        <div>
+            <span class="ticket-label">Ticket Number:</span>
+            <span class="ticket-value"><?php echo htmlspecialchars($ticket['ticket_number']); ?></span>
         </div>
-        
-        <div class="ticket-body">
-            <div class="ticket-details">
-                <h2 class="event-title"><?php echo htmlspecialchars($ticket['event']['title']); ?></h2>
-                
-                <div class="info-group">
-                    <p class="info-label">Date & Time</p>
-                    <p class="info-value">
-                        <?php echo htmlspecialchars($ticket['event']['date']); ?><br>
-                        <?php echo htmlspecialchars($ticket['event']['time']); ?>
-                    </p>
-                </div>
-                
-                <div class="info-group">
-                    <p class="info-label">Venue</p>
-                    <p class="info-value">
-                        <?php echo htmlspecialchars($ticket['event']['venue']); ?><br>
-                        <span style="font-weight: normal; font-size: 0.9rem;">
-                            <?php echo htmlspecialchars($ticket['event']['address']); ?>
-                        </span>
-                    </p>
-                </div>
-                
-                <div class="info-group">
-                    <p class="info-label">Ticket Holder</p>
-                    <p class="info-value"><?php echo htmlspecialchars($ticket['holder']['name']); ?></p>
-                </div>
-                
-                <div class="info-group">
-                    <p class="info-label">Ticket Type</p>
-                    <p class="info-value"><?php echo htmlspecialchars($ticket['details']['type']); ?></p>
-                </div>
-                
-                <div class="info-group">
-                    <p class="info-label">Order Date</p>
-                    <p class="info-value">
-                        <?php echo $ticket['details']['order_date']; ?>
-                        <span style="font-weight: normal;">at <?php echo $ticket['details']['order_time']; ?></span>
-                    </p>
-                </div>
-            </div>
-            
-            <div class="ticket-qr">
-                <div class="ticket-number">
-                    <?php echo $ticket['ticket_number']; ?>
-                </div>
-                
-                <div class="qr-code">
-                    <!-- In a real application, generate a QR code here -->
-                    QR Code<br>Will Be Here
-                </div>
-                
-                <div style="text-align: center;">
-                    <p style="margin: 0 0 10px; font-weight: bold;">Scan this QR code at the entrance</p>
-                    <p style="margin: 0; font-size: 0.8rem; color: #666;">
-                        This ticket admits 1 person
-                    </p>
-                </div>
-            </div>
+        <div>
+            <span class="ticket-label">Account Name:</span>
+            <span class="ticket-value"><?php echo htmlspecialchars($ticket['account_name']); ?></span>
         </div>
-        
-        <div class="ticket-footer">
-            <p>Present this ticket (digital or printed) at the event entrance. Lost tickets cannot be replaced.</p>
-            <p>For assistance, contact: support@lostboysclub.com</p>
+        <div>
+            <span class="ticket-label">Price:</span>
+            <span class="ticket-value">₱<?php echo number_format($ticket['price'], 2); ?></span>
+        </div>
+        <div>
+            <span class="ticket-label">Status:</span>
+            <span class="ticket-value"><?php echo htmlspecialchars($ticket['status']); ?></span>
+        </div>
+        <div>
+            <span class="ticket-label">Payment Reference:</span>
+            <span class="ticket-value"><?php echo htmlspecialchars($ticket['payment_reference']); ?></span>
+        </div>
+        <div>
+            <span class="ticket-label">Payment Date:</span>
+            <span class="ticket-value">
+              <?php echo !empty($ticket['payment_date']) ? date('F j, Y g:i A', strtotime($ticket['payment_date'])) : 'N/A'; ?>
+            </span>
+        </div>
+        <div>
+            <span class="ticket-label">Amount Paid:</span>
+            <span class="ticket-value">₱<?php echo number_format((float)$ticket['amount_paid'], 2); ?></span>
         </div>
     </div>
-    
     <button onclick="window.print()" class="print-button">Print Ticket</button>
-    
-    <script>
-        // In a real application, you would generate a QR code here
-        // For example, using a library like QRCode.js or similar
-        // Example:
-        // new QRCode(document.querySelector(".qr-code"), {
-        //     text: "<?php echo $ticket['ticket_number']; ?>",
-        //     width: 180,
-        //     height: 180
-        // });
-    </script>
+</main>
 </body>
 </html>

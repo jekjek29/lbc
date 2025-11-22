@@ -1,12 +1,12 @@
 <?php
 include 'connection.php';
 
+// This script should only be accessible for initial setup
+// Delete after creating first admin account
+
 // Initialize variables
 $error = '';
 $success = '';
-
-// This script should only be accessible for initial setup
-// Delete after creating first admin account
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_admin'])) {
     $username = trim($_POST['username'] ?? '');
@@ -31,19 +31,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_admin'])) {
         $hashed_password = password_hash($password, PASSWORD_ARGON2ID);
         
         $stmt = $conn->prepare("INSERT INTO admins (username, email, password_hash) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $username, $email, $hashed_password);
         
-        if (!$stmt) {
-            $error = 'Database error: ' . $conn->error;
+        if ($stmt->execute()) {
+            $success = 'Admin account created successfully!';
         } else {
-            $stmt->bind_param("sss", $username, $email, $hashed_password);
-            
-            if ($stmt->execute()) {
-                $success = 'Admin account created successfully! Delete this file now.';
-            } else {
-                $error = 'Error creating account: ' . $stmt->error;
-            }
-            $stmt->close();
+            $error = 'Error creating account: ' . $conn->error;
         }
+        $stmt->close();
     }
 }
 ?>
@@ -111,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_admin'])) {
         .form-group input {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #ddd;
+            border: 2px solid #e0e0e0;
             border-radius: 6px;
             font-size: 14px;
             transition: border-color 0.3s;
@@ -161,35 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_admin'])) {
         .register-btn:active {
             transform: translateY(0);
         }
-
-        .warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .requirements {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 12px;
-            border-radius: 4px;
-            margin: 15px 0;
-            font-size: 13px;
-            color: #333;
-        }
-
-        .requirements ul {
-            margin: 8px 0 0 20px;
-            padding: 0;
-        }
-
-        .requirements li {
-            margin: 4px 0;
-        }
+        
+       
     </style>
 </head>
 <body>
@@ -199,61 +167,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_admin'])) {
             <p>Create Initial Admin Account</p>
         </div>
         
-        <div class="warning">
-            ⚠️ <strong>IMPORTANT:</strong> Delete this file immediately after creating the admin account for security!
-        </div>
-        
         <?php if ($error): ?>
-            <div class="alert alert-error">
-                <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
-            </div>
+            <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         
         <?php if ($success): ?>
-            <div class="alert alert-success">
-                <strong>✓ Success:</strong> <?php echo htmlspecialchars($success); ?>
-            </div>
+            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
         <?php endif; ?>
-
-        <?php if (!$success): ?>
+        
         <form method="POST" action="">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required placeholder="Enter admin username">
+                <input type="text" id="username" name="username" required>
             </div>
             
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="Enter admin email">
+                <input type="email" id="email" name="email" required>
             </div>
             
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Create a strong password">
-            </div>
-
-            <div class="requirements">
-                <strong>Password Requirements:</strong>
-                <ul>
-                    <li>✓ At least 8 characters</li>
-                    <li>✓ At least one uppercase letter (A-Z)</li>
-                    <li>✓ At least one number (0-9)</li>
-                </ul>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Min 8 chars, 1 uppercase, 1 number">
             </div>
             
             <div class="form-group">
                 <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required placeholder="Re-enter your password">
+                <input type="password" id="confirm_password" name="confirm_password" required>
             </div>
             
             <div class="form-group">
                 <label for="secret_key">Secret Key</label>
-                <input type="password" id="secret_key" name="secret_key" required placeholder="Setup verification key">
+                <input type="password" id="secret_key" name="secret_key" required 
+                       placeholder="Setup verification key">
             </div>
             
             <button type="submit" name="register_admin" class="register-btn">Create Admin Account</button>
         </form>
-        <?php endif; ?>
     </div>
 </body>
 </html>

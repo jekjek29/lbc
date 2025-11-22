@@ -1,81 +1,68 @@
 <?php
-include "connection.php";
+include('connection.php');
 
-
-if (isset($_POST['loginbtn'])) {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $username_or_email = mysqli_real_escape_string($conn, $_POST['username_email']);
     $password = $_POST['password'];
 
-    // Find user by username
-    $select = "SELECT * FROM login WHERE username = '$username' OR email = '$username'";
-    $result = mysqli_query($conn, $select);
+    $sql = "SELECT * FROM login WHERE username = '$username_or_email' OR email = '$username_or_email'";
+    $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
-
-        // Verify password
+        
         if (password_verify($password, $row['password_hash'])) {
-            // Store user info in session
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['user_name'] = $row['first_name'] . " " . $row['last_name'];
+            $_SESSION['first_name'] = $row['first_name'];
+            $_SESSION['last_name'] = $row['last_name'];
+            $_SESSION['email'] = $row['email'];
             $_SESSION['role'] = $row['role'];
-
-            // Redirect to dashboard/frontpage
+            
             header("Location: dashboard.php");
             exit();
         } else {
-            echo "Incorrect username/email or password!";
+            $error = "Incorrect username/email or password!";
         }
     } else {
-        echo "Incorrect username/email or password!";
+        $error = "Incorrect username/email or password!";
     }
 }
 ?>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lost Boys Club Login</title>
+    <title>Login - LBC Ticket System</title>
     <link rel="stylesheet" href="user-style.css">
 </head>
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <h1>Lost Boys Club</h1>
-        </div>
-          <div class="nav-content" id="navContent">
-            <div class="user-info">
-                
-                <a href="index.html" class="btn btn--outline">Home</a>
-                
-            </div>
-        </div>
-    </header>
-
-    <main class="main-container">
+    <div class="main-container">
         <div class="login-card">
-            <img src="images/logo.jpg" alt="Lost Boys Club Logo" class="login-logo">
+            <img src="images/logo.jpg" alt="Logo" class="login-logo">
             <h2>Login to your Account</h2>
             
-            <form action="login.php" method="POST">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required placeholder="Enter username or email">
-
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required placeholder="Enter your password">
-
-                <button type="submit" name="loginbtn">Login</button>
+            <?php if (isset($error)): ?>
+                <div class="alert alert-error"><?php echo $error; ?></div>
+            <?php endif; ?>
+            
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="username_email">Username or Email</label>
+                    <input type="text" id="username_email" name="username_email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit">Login</button>
             </form>
-
-            <p class="signup-text">
-                Don't have an account? <a href="register.php">Sign Up</a>
-            </p> 
+            
+            <p class="signup-text">Don't have an account? <a href="register.php">Sign Up</a></p>
         </div>
-    </main>
+    </div>
 </body>
 </html>
-

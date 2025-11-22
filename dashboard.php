@@ -8,15 +8,17 @@ if (!isset($_SESSION['user_id'])) {
 
 // Hardcoded image mapping
 $eventImages = [
-    1 => 'images/logo.jpg',
-    2 => 'images/logo.jpg',
-    3 => 'images/logo.jpg',
-    4 => 'images/logo.jpg'
+    3 => 'images/landing1.jpg',
+    4 => 'images/landing2.jpg',
+    5 => 'images/landing3.jpg',
+    6 => 'images/landing4.jpg'
 ];
 
 // **FETCH EVENTS WITH LIVE AVAILABILITY FROM DATABASE**
 $sql = "SELECT id, 
                title as name, 
+               location, 
+               venue, 
                CONCAT(event_date, ' @ ', DATE_FORMAT(event_time, '%h:%i %p')) as datetime, 
                price, 
                available_tickets,
@@ -24,6 +26,8 @@ $sql = "SELECT id,
         FROM events 
         WHERE event_date >= CURDATE() 
         ORDER BY event_date ASC";
+
+
 
 $result = $conn->query($sql);
 $events = [];
@@ -60,73 +64,74 @@ $stmt->close();
     <link rel="stylesheet" href="user-style.css">
 </head>
 <body>
-    <header class="navbar">
+<!-- Navbar -->
+    <nav class="navbar">
         <div class="logo">
             <img src="images/logo.jpg" alt="LBC Logo" class="navbar-logo">
-            <h1>Lost Boys Club</h1>
+            <h1>LOST BOYS CLUB</h1>
         </div>
-        <nav class="nav-links">
-            <a href="#">Home</a>
-            <a href="ticket.php">Tickets</a>
+        
+        <div class="nav-links">
+            <a href="dashboard.php">Home</a>
+            <a href="ticket.php">Ticket</a>
             <a href="account.php">Account</a>
-        </nav>
-        <div class="user-info">
-            <span class="user-info">Welcome, <?php echo htmlspecialchars($_SESSION['user_name']); ?></span> 
-            <a href="logout.php">Logout</a>
+            
+            <div class="user-info">
+                <p>Welcome, <strong><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'Guest'); ?></strong></p>
+                <a href="logout.php" class="logout-btn">Logout</a>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <main class="dashboard-container">
-        <h2>UPCOMING EVENTS</h2>
-        <div class="event-list">
-            <?php
-            foreach ($events as $event) {
-                $js_event_name = addslashes($event['name']);
-                $js_event_datetime = addslashes($event['datetime']);
-                $imagePath = isset($eventImages[$event['id']]) ? $eventImages[$event['id']] : 'images/logo.jpg';
-                
-                // Calculate user's current tickets for this event
-                $user_current_tickets = isset($user_ticket_counts[$event['id']]) ? $user_ticket_counts[$event['id']] : 0;
-                $user_remaining_limit = 10 - $user_current_tickets;
+  <main class="dashboard-container">
+    <h2>UPCOMING EVENTS</h2>
+    <div class="dashboard-grid">
+        <?php
+       foreach ($events as $event) {
+    $js_event_name = addslashes($event['name']);
+    $js_event_datetime = addslashes($event['datetime']);
+    $imagePath = isset($eventImages[$event['id']]) ? $eventImages[$event['id']] : 'images/logo.jpg';
+    $user_current_tickets = isset($user_ticket_counts[$event['id']]) ? $user_ticket_counts[$event['id']] : 0;
+    $user_remaining_limit = max(0, 10 - $user_current_tickets);
 
-                echo '<div class="event" data-event-id="' . $event['id'] . '">';
-                echo '<img src="' . htmlspecialchars($imagePath) . '" 
-                           alt="' . htmlspecialchars($event['name']) . '" 
-                           class="event-image" 
-                           onerror="this.src=\'images/logo.jpg\'">';
-                echo '<div class="event-details">';
-                echo '<h3>' . htmlspecialchars($event['name']) . '</h3>';
-                echo '<p>' . htmlspecialchars($event['datetime']) . '</p>';
-                
-                // **DISPLAY AVAILABILITY**
-                echo '<p class="availability">Available: ' . htmlspecialchars($event['available_tickets']) . ' / ' . htmlspecialchars($event['capacity']) . ' tickets</p>';
-                
-                // Show user's purchase limit
-                if ($user_remaining_limit <= 0) {
-                    echo '<p class="user-limit" style="color: #dc3545; font-size: 13px;">You\'ve reached the maximum purchase limit (10 tickets)</p>';
-                } else {
-                    echo '<p class="user-limit" style="color: #28a745; font-size: 13px;">You can purchase up to ' . $user_remaining_limit . ' more ticket(s)</p>';
-                }
-                
-                // **SHOW BUTTON OR SOLD OUT**
-                if ($event['available_tickets'] > 0 && $user_remaining_limit > 0) {
-                    echo '<button 
-                            class="buy-tickets-btn" 
-                            onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ', ' . $user_remaining_limit . ')">
-                            Buy Tickets
-                          </button>';
-                } elseif ($user_remaining_limit <= 0) {
-                    echo '<button class="buy-tickets-btn sold-out" disabled>Purchase Limit Reached</button>';
-                } else {
-                    echo '<button class="buy-tickets-btn sold-out" disabled>Sold Out</button>';
-                }
-                
-                echo '</div>';
-                echo '</div>';
-            }
-            ?>
-        </div>
-    </main>
+    echo '<div class="event-card">';
+    echo '  <img src="' . htmlspecialchars($imagePath) . '" alt="' . htmlspecialchars($event['name']) . '" class="event-card-img" onerror="this.src=\'images/logo.jpg\'">';
+    echo '  <div class="event-card-info">';
+    echo '    <div class="event-title">' . htmlspecialchars($event['name']) . '</div>';
+    echo '    <div class="event-price" style="color:#28a745;font-weight:600;">💰 Price: '.'₱' . number_format($event['price'], 2) . ' </div>'; // <-- New price line
+    echo '    <div class="event-date"><span style="color:#888;">📅 Date:</span>' .' '. htmlspecialchars($event['datetime']) . '</div>';
+    echo '    <div class="event-location"><span style="color:#888;">📍 Location & Venue:</span> ' . htmlspecialchars($event['venue']) . ' ' . htmlspecialchars($event['location']) . '</div>';
+    echo '    <div class="event-description">';
+    echo '      Available: ' . htmlspecialchars($event['available_tickets']) . ' / ' . htmlspecialchars($event['capacity']) . ' tickets<br>';
+    if ($user_remaining_limit <= 0) {
+        echo '<span style="color: #dc3545; font-size: 13px;">You\'ve reached the maximum purchase limit (10 tickets)</span>';
+    } else {
+       
+    }
+    echo '    </div>';
+    echo '    <div class="event-action">';
+    if ($event['available_tickets'] > 0 && $user_remaining_limit > 0) {
+        echo '<button 
+          class="btn-primary buy-tickets-btn" 
+          onclick="openStep1(\'' . $js_event_name . '\', \'' . $js_event_datetime . '\', ' . htmlspecialchars($event['price']) . ', ' . $event['id'] . ', ' . $user_remaining_limit . ')">
+          Buy Tickets
+        </button>';
+    } elseif ($user_remaining_limit <= 0) {
+        echo '<button class="btn-primary buy-tickets-btn sold-out" disabled>Purchase Limit Reached</button>';
+    } else {
+        echo '<button class="btn-primary buy-tickets-btn sold-out" disabled>Sold Out</button>';
+    }
+    echo '    </div>';
+    echo '  </div>';
+    echo '</div>';
+}
+
+        ?>
+    </div>
+</main>
+
+
+
     
     
     <div id="modalStep1" class="modal">
@@ -161,12 +166,11 @@ $stmt->close();
             <h2>Step 2: Scan to Pay via G-Cash</h2>
             <div class="qr-code-container">
                 <img src="images/qr.jpg" alt="G-Cash QR Code">
-                <p>Please send <strong id="modal2Amount">₱0.00</strong> to the account associated with this QR code.</p>
-                <p>Account Name: <strong>Lost Boys Club Payments</strong></p>
             </div>
+            <p>Please send <strong id="modal2Amount">₱0.00</strong> to the account associated with this QR code.</p>
+                <p>Account Name: <strong>Lost Boys Club Payments</strong></p>
             <p>After a successful transaction, click 'Next' to input your payment details.</p>
             <div class="button-group">
-                <button type="button" class="btn-confirm no-btn" onclick="nextModal(2, 1)">Back</button>
                 <button type="button" class="checkout-btn" onclick="nextModal(2, 3)">Next: Enter Payment Details</button>
             </div>
         </div>
