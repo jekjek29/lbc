@@ -2,9 +2,10 @@
 include 'connection.php';
 
 // Get parameters from POST (not GET)
-$ticket_id      = filter_var($_POST['ticket_id'] ?? null, FILTER_VALIDATE_INT);
-$ticket_number  = $_POST['ticket_number'] ?? '';
-$action         = $_POST['action'] ?? '';
+$ticket_id     = filter_var($_POST['ticket_id'] ?? null, FILTER_VALIDATE_INT);
+$ticket_number = $_POST['ticket_number'] ?? '';
+$action        = $_POST['action'] ?? '';
+$redirect      = $_POST['redirect'] ?? ''; // from dashboard forms
 
 // Accept only the allowed actions
 $allowed_actions = ['accept', 'reject', 'pending'];
@@ -15,7 +16,11 @@ $status_map = [
 ];
 
 if (!$ticket_id || !in_array($action, $allowed_actions, true)) {
-    header("Location: admin_dashboard.php?update=error&message=" . urlencode('Invalid parameters'));
+    $base = $redirect !== '' ? $redirect : 'admin_dashboard.php';
+    $sep  = (strpos($base, '?') !== false) ? '&' : '?';
+
+    header('Location: ' . $base . $sep .
+        'update=error&message=' . urlencode('Invalid parameters'));
     exit();
 }
 
@@ -62,7 +67,10 @@ try {
             }
             $stmt->close();
         } elseif ($old_status === 'confirmed' && $new_status !== 'confirmed') {
-            $stmt = $conn->prepare("UPDATE events SET available_tickets = available_tickets + 1 WHERE id = ?");
+            $stmt = $conn->prepare(
+                "UPDATE events SET available_tickets = available_tickets + 1 
+                 WHERE id = ?"
+            );
             $stmt->bind_param("i", $event_id);
             $stmt->execute();
             $stmt->close();
@@ -72,16 +80,27 @@ try {
     // Commit all changes
     $conn->commit();
 
-    // Redirect using ticket_number
+    // Build redirect url: stay on same page, just add notification params.
     $ticket_number_qs = urlencode($ticket_number);
-    $status_qs        = urlencode($new_status);
-    header("Location: admin_dashboard.php?update=success&ticket_number={$ticket_number_qs}&status={$status_qs}");
+    $updated_status_qs = urlencode($new_status);
+
+    $base = $redirect !== '' ? $redirect : 'admin_dashboard.php';
+    $sep  = (strpos($base, '?') !== false) ? '&' : '?';
+
+    header('Location: ' . $base . $sep .
+        'update=success&ticket_number=' . $ticket_number_qs .
+        '&updated_status=' . $updated_status_qs);
     exit();
 
 } catch (Exception $e) {
     $conn->rollback();
     error_log("Status update error: " . $e->getMessage());
-    header("Location: admin_dashboard.php?update=error&message=" . urlencode($e->getMessage()));
+
+    $base = $redirect !== '' ? $redirect : 'admin_dashboard.php';
+    $sep  = (strpos($base, '?') !== false) ? '&' : '?';
+
+    header('Location: ' . $base . $sep .
+        'update=error&message=' . urlencode($e->getMessage()));
     exit();
 }
 

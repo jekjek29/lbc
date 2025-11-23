@@ -62,6 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
             
             <p class="signup-text">Don't have an account? <a href="register.php">Sign Up</a></p>
+            <p class="signup-text"><a href="index.html" class="back-button">Back to Home</a></p>
+            
+
         </div>
     </div>
 </body>
